@@ -7,7 +7,7 @@
 		<result column="customer_id" jdbcType="VARCHAR" property="customerId" />
 	</resultMap>
 
-	<resultMap id="AccountWithCurrenciesResultMap" type="com.mukk.tuum.model.response.AccountResponse" autoMapping="true">
+	<resultMap id="AccountWithCurrenciesResultMap" type="com.mukk.tuum.persistence.entity.AccountBalance" autoMapping="true">
 		<id column="account_id" property="account.accountId" />
 		<result column="customer_id" property="account.customerId" />
 		<collection property="balances" ofType="com.mukk.tuum.persistence.entity.Balance" javaType="List" autoMapping="true">

@@ -4,6 +4,7 @@ import com.mukk.tuum.exception.InvalidCurrencyException;
 import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.persistence.dao.BalanceDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -37,52 +38,6 @@ class BalanceServiceTest {
     @InjectMocks
     private BalanceService balanceService;
 
-    @Test
-    void creates_balances() {
-        mockBalanceDaoInsert();
-        when(balanceDao.getBalancesByAccountId(ACCOUNT_ID.toString())).thenReturn(List.of());
-
-        final var result = balanceService.createBalances(CURRENCIES, ACCOUNT_ID);
-
-        verify(balanceDao, times(2)).insert(any(BalanceEntity.class));
-        verify(balanceDao).getBalancesByAccountId(ACCOUNT_ID.toString());
-        assertThat(result).isNotNull();
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = Currency.class, names = { "EUR", "GBP" })
-    void verifies_that_account_has_balance_with_given_currency(Currency validCurrency) {
-        when(balanceDao.getAccountCurrencies(ACCOUNT_ID.toString())).thenReturn(CURRENCIES);
-
-        assertDoesNotThrow(() -> balanceService.verifyAccountHasCurrency(validCurrency, ACCOUNT_ID));
-    }
-
-    @ParameterizedTest
-    @EnumSource(value = Currency.class, names = { "USD", "SEK" })
-    void verifies_that_account_does_not_have_balance_with_given_currency(Currency invalidCurrency) {
-        when(balanceDao.getAccountCurrencies(ACCOUNT_ID.toString())).thenReturn(CURRENCIES);
-
-        final var exception = assertThrows(InvalidCurrencyException.class,
-                () -> balanceService.verifyAccountHasCurrency(invalidCurrency, ACCOUNT_ID));
-
-        assertThat(exception.getMessage()).isEqualTo(String.format("No balance available for currency '%s'", invalidCurrency));
-    }
-
-    @Test
-    void updates_balance() {
-        final var balanceEntity = new BalanceEntity();
-        balanceService.updateBalance(balanceEntity);
-
-        verify(balanceDao).updateByPrimaryKey(balanceEntity);
-    }
-
-    @Test
-    void gets_balance_for_updating() {
-        balanceService.getBalanceForUpdating(ACCOUNT_ID, Currency.EUR);
-
-        verify(balanceDao).getBalanceByAccountIdForUpdate(ACCOUNT_ID.toString(), Currency.EUR.getValue());
-    }
-
     /*
     Since my myBatis implementation creates and sets accountId in BalanceEntity while/after insert
     automatically (I do not provide a value prior to inserting),
@@ -94,5 +49,67 @@ class BalanceServiceTest {
             balanceEntity.setBalanceId(BALANCE_ID.toString());
             return 1;
         });
+    }
+
+    @Nested
+    class Create_balance {
+
+        @Test
+        void succeeds() {
+            mockBalanceDaoInsert();
+            when(balanceDao.getBalancesByAccountId(ACCOUNT_ID.toString())).thenReturn(List.of());
+
+            final var result = balanceService.createBalances(CURRENCIES, ACCOUNT_ID);
+
+            verify(balanceDao, times(2)).insert(any(BalanceEntity.class));
+            verify(balanceDao).getBalancesByAccountId(ACCOUNT_ID.toString());
+            assertThat(result).isNotNull();
+        }
+    }
+
+    @Nested
+    class Balance_verification {
+
+        @ParameterizedTest
+        @EnumSource(value = Currency.class, names = {"EUR", "GBP"})
+        void succeeds_when_account_has_balance_with_given_currency(Currency validCurrency) {
+            when(balanceDao.getAccountCurrencies(ACCOUNT_ID.toString())).thenReturn(CURRENCIES);
+
+            assertDoesNotThrow(() -> balanceService.verifyAccountHasCurrency(validCurrency, ACCOUNT_ID));
+        }
+
+        @ParameterizedTest
+        @EnumSource(value = Currency.class, names = {"USD", "SEK"})
+        void throws_an_exception_when_account_does_not_have_balance_with_given_currency(Currency invalidCurrency) {
+            when(balanceDao.getAccountCurrencies(ACCOUNT_ID.toString())).thenReturn(CURRENCIES);
+
+            final var exception = assertThrows(InvalidCurrencyException.class,
+                    () -> balanceService.verifyAccountHasCurrency(invalidCurrency, ACCOUNT_ID));
+
+            assertThat(exception.getMessage()).isEqualTo(String.format("No balance available for currency '%s'", invalidCurrency));
+        }
+    }
+
+    @Nested
+    class Update_balance {
+
+        @Test
+        void succeeds() {
+            final var balanceEntity = new BalanceEntity();
+            balanceService.updateBalance(balanceEntity);
+
+            verify(balanceDao).updateByPrimaryKey(balanceEntity);
+        }
+    }
+
+    @Nested
+    class Get_balance {
+
+        @Test
+        void for_updating_succeeds() {
+            balanceService.getBalanceForUpdating(ACCOUNT_ID, Currency.EUR);
+
+            verify(balanceDao).getBalanceByAccountIdForUpdate(ACCOUNT_ID.toString(), Currency.EUR.getValue());
+        }
     }
 }

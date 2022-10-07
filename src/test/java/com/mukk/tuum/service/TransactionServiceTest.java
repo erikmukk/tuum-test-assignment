@@ -9,6 +9,7 @@ import com.mukk.tuum.model.request.TransactionRequest;
 import com.mukk.tuum.persistence.dao.TransactionDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
 import com.mukk.tuum.persistence.entity.gen.TransactionEntity;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -58,26 +59,22 @@ class TransactionServiceTest {
         );
     }
 
-    @Test
-    void gets_account_transactions() {
-        when(transactionDao.getByAccountId(ACCOUNT_ID.toString())).thenReturn(List.of());
-
-        final var result = assertDoesNotThrow(() -> transactionService.get(ACCOUNT_ID));
-
-        verify(transactionDao).getByAccountId(ACCOUNT_ID.toString());
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    void does_not_get_account_transactions_due_to_missing_account() throws AccountMissingException {
-        doThrow(new AccountMissingException("")).when(accountService).verifyAccountExists(ACCOUNT_ID);
-
-        assertThrows(AccountMissingException.class, () -> transactionService.get(ACCOUNT_ID));
+    /*
+    Since my myBatis implementation creates and sets accountId in TransactionEntity while/after insert
+    automatically (I do not provide a value prior to inserting),
+    then I need this more complex mocking logic.
+     */
+    private void mockTransactionDaoInsert() {
+        when(transactionDao.insert(any(TransactionEntity.class))).thenAnswer((Answer<Integer>) invocation -> {
+            TransactionEntity transactionEntity = invocation.getArgument(0);
+            transactionEntity.setTransactionId(TRANSACTION_ID.toString());
+            return 1;
+        });
     }
 
     @ParameterizedTest
     @MethodSource("transactionArgumentProvider")
-    void creates_transaction(TransactionDirection transactionDirection, Double initialBalance) {
+    void create_transaction_succeeds(TransactionDirection transactionDirection, Double initialBalance) {
         final var transactionRequest = TransactionRequest.builder()
                 .accountId(ACCOUNT_ID)
                 .description("DESC")
@@ -103,62 +100,73 @@ class TransactionServiceTest {
         assertThat(result).isNotNull();
     }
 
-    @Test
-    void fails_to_create_transaction_due_to_missing_account() throws AccountMissingException {
-        final var transactionRequest = TransactionRequest.builder().accountId(ACCOUNT_ID).build();
+    @Nested
+    class Get_transactions {
 
-        doThrow(new AccountMissingException("")).when(accountService).verifyAccountExists(ACCOUNT_ID);
+        @Test
+        void for_account_succeeds() {
+            when(transactionDao.getByAccountId(ACCOUNT_ID.toString())).thenReturn(List.of());
 
-        assertThrows(AccountMissingException.class, () -> transactionService.create(transactionRequest));
+            final var result = assertDoesNotThrow(() -> transactionService.get(ACCOUNT_ID));
+
+            verify(transactionDao).getByAccountId(ACCOUNT_ID.toString());
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        void throws_an_exception_due_to_missing_account() throws AccountMissingException {
+            doThrow(new AccountMissingException("")).when(accountService).verifyAccountExists(ACCOUNT_ID);
+
+            assertThrows(AccountMissingException.class, () -> transactionService.get(ACCOUNT_ID));
+        }
     }
 
-    @Test
-    void fails_to_create_transaction_due_to_unavailable_currency() throws InvalidCurrencyException {
-        final var transactionRequest = TransactionRequest.builder()
-                .accountId(ACCOUNT_ID)
-                .currency(Currency.GBP)
-                .build();
+    @Nested
+    class Create_transaction_fails {
+        @Test
+        void due_to_missing_account() throws AccountMissingException {
+            final var transactionRequest = TransactionRequest.builder().accountId(ACCOUNT_ID).build();
 
-        doThrow(new InvalidCurrencyException("")).when(balanceService)
-                .verifyAccountHasCurrency(Currency.GBP, ACCOUNT_ID);
+            doThrow(new AccountMissingException("")).when(accountService).verifyAccountExists(ACCOUNT_ID);
 
-        assertThrows(InvalidCurrencyException.class, () -> transactionService.create(transactionRequest));
-    }
+            assertThrows(AccountMissingException.class, () -> transactionService.create(transactionRequest));
+        }
 
-    @Test
-    void fails_to_create_transaction_due_to_invalid_funds() {
-        final var transactionRequest = TransactionRequest.builder()
-                .accountId(ACCOUNT_ID)
-                .description("DESC")
-                .direction(TransactionDirection.OUT)
-                .currency(Currency.EUR)
-                .amount(10.0)
-                .build();
-        final var balance = BalanceEntity.builder()
-                .accountId(ACCOUNT_ID.toString())
-                .currency(Currency.EUR.getValue())
-                .amount(5.0)
-                .build();
+        @Test
+        void due_to_unavailable_currency() throws InvalidCurrencyException {
+            final var transactionRequest = TransactionRequest.builder()
+                    .accountId(ACCOUNT_ID)
+                    .currency(Currency.GBP)
+                    .build();
 
-        when(balanceService.getBalanceForUpdating(ACCOUNT_ID, transactionRequest.getCurrency()))
-                .thenReturn(balance);
+            doThrow(new InvalidCurrencyException("")).when(balanceService)
+                    .verifyAccountHasCurrency(Currency.GBP, ACCOUNT_ID);
 
-        final var exception = assertThrows(InsufficientFundsException.class,
-                () -> transactionService.create(transactionRequest));
+            assertThrows(InvalidCurrencyException.class, () -> transactionService.create(transactionRequest));
+        }
 
-        assertThat(exception.getMessage()).isEqualTo(String.format("Insufficient funds. Got '%s', required '%s'", 5.0, 10.0));
-    }
+        @Test
+        void due_to_insufficient_funds() {
+            final var transactionRequest = TransactionRequest.builder()
+                    .accountId(ACCOUNT_ID)
+                    .description("DESC")
+                    .direction(TransactionDirection.OUT)
+                    .currency(Currency.EUR)
+                    .amount(10.0)
+                    .build();
+            final var balance = BalanceEntity.builder()
+                    .accountId(ACCOUNT_ID.toString())
+                    .currency(Currency.EUR.getValue())
+                    .amount(5.0)
+                    .build();
 
-    /*
-    Since my myBatis implementation creates and sets accountId in TransactionEntity while/after insert
-    automatically (I do not provide a value prior to inserting),
-    then I need this more complex mocking logic.
-     */
-    private void mockTransactionDaoInsert() {
-        when(transactionDao.insert(any(TransactionEntity.class))).thenAnswer((Answer<Integer>) invocation -> {
-            TransactionEntity transactionEntity = invocation.getArgument(0);
-            transactionEntity.setTransactionId(TRANSACTION_ID.toString());
-            return 1;
-        });
+            when(balanceService.getBalanceForUpdating(ACCOUNT_ID, transactionRequest.getCurrency()))
+                    .thenReturn(balance);
+
+            final var exception = assertThrows(InsufficientFundsException.class,
+                    () -> transactionService.create(transactionRequest));
+
+            assertThat(exception.getMessage()).isEqualTo(String.format("Insufficient funds. Got '%s', required '%s'", 5.0, 10.0));
+        }
     }
 }

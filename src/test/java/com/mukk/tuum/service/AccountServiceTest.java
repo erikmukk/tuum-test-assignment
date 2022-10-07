@@ -3,10 +3,11 @@ package com.mukk.tuum.service;
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.model.request.CreateAccountRequest;
-import com.mukk.tuum.model.response.AccountResponse;
 import com.mukk.tuum.persistence.dao.AccountDao;
+import com.mukk.tuum.persistence.entity.AccountBalance;
 import com.mukk.tuum.persistence.entity.gen.AccountEntity;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -40,64 +41,10 @@ class AccountServiceTest {
     @InjectMocks
     private AccountService accountService;
 
-    @Test
-    void creates_account() {
-        final var createAccountRequest = CreateAccountRequest.builder()
-                .customerId(CUSTOMER_ID)
-                .country(COUNTRY)
-                .currencies(CURRENCIES)
-                .build();
-
-        mockAccountDaoInsert();
-        mockCreateBalances();
-
-        final var accountResponse = accountService.create(createAccountRequest);
-
-        verify(accountDao).insert(any(AccountEntity.class));
-        verify(balanceService).createBalances(CURRENCIES, ACCOUNT_ID);
-        assertThat(accountResponse).isNotNull();
-    }
-
-    @Test
-    void gets_account_with_balances() {
-        when(accountDao.getAccountWithBalances(ACCOUNT_ID.toString()))
-                .thenReturn(new AccountResponse(new AccountEntity(), List.of()));
-
-        final var result = assertDoesNotThrow(() -> accountService.getAccountWithBalances(ACCOUNT_ID));
-
-        assertThat(result).isNotNull();
-    }
-
-    @Test
-    void fails_when_getting_account_with_balances_due_to_missing_account() {
-        when(accountDao.getAccountWithBalances(ACCOUNT_ID.toString())).thenReturn(new AccountResponse());
-
-        final var exception = assertThrows(AccountMissingException.class, () -> accountService.getAccountWithBalances(ACCOUNT_ID));
-
-        assertThat(exception.getMessage()).isEqualTo(String.format("Account with id '%s' does not exist.", ACCOUNT_ID));
-    }
-
-    @Test
-    void verifies_that_account_exists() {
-        when(accountDao.selectByPrimaryKey(ACCOUNT_ID.toString())).thenReturn(new AccountEntity());
-
-        assertDoesNotThrow(() -> accountService.verifyAccountExists(ACCOUNT_ID));
-    }
-
-    @Test
-    void verifies_that_account_does_not_exist() {
-        when(accountDao.selectByPrimaryKey(ACCOUNT_ID.toString())).thenReturn(null);
-
-        final var exception = assertThrows(AccountMissingException.class, () -> accountService.verifyAccountExists(ACCOUNT_ID));
-
-        assertThat(exception.getMessage()).isEqualTo(String.format("Account with id '%s' does not exist.", ACCOUNT_ID));
-    }
-
     private void mockCreateBalances() {
         final var balanceEur = new BalanceEntity(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0.0, Currency.EUR.getValue());
         final var balanceGbp = new BalanceEntity(UUID.randomUUID().toString(), UUID.randomUUID().toString(), 0.0, Currency.GBP.getValue());
         when(balanceService.createBalances(CURRENCIES, ACCOUNT_ID)).thenReturn(List.of(balanceEur, balanceGbp));
-
     }
 
     /*
@@ -111,6 +58,70 @@ class AccountServiceTest {
             accountEntity.setAccountId(ACCOUNT_ID.toString());
             return 1;
         });
+    }
+
+    @Nested
+    class Create_account {
+
+        @Test
+        void succeeds() {
+            final var createAccountRequest = CreateAccountRequest.builder()
+                    .customerId(CUSTOMER_ID)
+                    .country(COUNTRY)
+                    .currencies(CURRENCIES)
+                    .build();
+
+            mockAccountDaoInsert();
+            mockCreateBalances();
+
+            final var accountResponse = accountService.create(createAccountRequest);
+
+            verify(accountDao).insert(any(AccountEntity.class));
+            verify(balanceService).createBalances(CURRENCIES, ACCOUNT_ID);
+            assertThat(accountResponse).isNotNull();
+        }
+    }
+
+    @Nested
+    class Get_account_with_balances {
+
+        @Test
+        void succeeds() {
+            when(accountDao.getAccountWithBalances(ACCOUNT_ID.toString()))
+                    .thenReturn(new AccountBalance(new AccountEntity(), List.of()));
+
+            final var result = assertDoesNotThrow(() -> accountService.getAccountWithBalances(ACCOUNT_ID));
+
+            assertThat(result).isNotNull();
+        }
+
+        @Test
+        void fails_due_to_missing_account() {
+            when(accountDao.getAccountWithBalances(ACCOUNT_ID.toString())).thenReturn(new AccountBalance());
+
+            final var exception = assertThrows(AccountMissingException.class, () -> accountService.getAccountWithBalances(ACCOUNT_ID));
+
+            assertThat(exception.getMessage()).isEqualTo(String.format("Account with id '%s' does not exist.", ACCOUNT_ID));
+        }
+    }
+
+    @Nested
+    class Account_verification {
+        @Test
+        void succeeds_with_existing_account() {
+            when(accountDao.selectByPrimaryKey(ACCOUNT_ID.toString())).thenReturn(new AccountEntity());
+
+            assertDoesNotThrow(() -> accountService.verifyAccountExists(ACCOUNT_ID));
+        }
+
+        @Test
+        void throws_an_exception_when_account_missing() {
+            when(accountDao.selectByPrimaryKey(ACCOUNT_ID.toString())).thenReturn(null);
+
+            final var exception = assertThrows(AccountMissingException.class, () -> accountService.verifyAccountExists(ACCOUNT_ID));
+
+            assertThat(exception.getMessage()).isEqualTo(String.format("Account with id '%s' does not exist.", ACCOUNT_ID));
+        }
     }
 
 }

@@ -6,6 +6,7 @@ import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import com.mukk.tuum.model.response.AccountResponse;
 import com.mukk.tuum.persistence.dao.AccountDao;
+import com.mukk.tuum.persistence.entity.AccountBalance;
 import com.mukk.tuum.persistence.entity.Balance;
 import com.mukk.tuum.persistence.entity.gen.AccountEntity;
 import lombok.RequiredArgsConstructor;
@@ -29,6 +30,7 @@ public class AccountService {
                 .build();
 
         accountDao.insert(account);
+
         final var createdBalances = balanceService.createBalances(request.getCurrencies(), UUID.fromString(account.getAccountId()));
         return AccountResponse.builder()
                 .account(account)
@@ -39,10 +41,12 @@ public class AccountService {
     }
 
     public AccountResponse getAccountWithBalances(UUID accountId) throws AccountMissingException {
-        final var accountWithCurrencies = accountDao.getAccountWithBalances(accountId.toString());
-        // TODO dao shouldn't return accountresponse
-        verifyAccountExists(accountWithCurrencies, accountId);
-        return accountWithCurrencies;
+        final var accountWithBalances = accountDao.getAccountWithBalances(accountId.toString());
+        verifyAccountExists(accountWithBalances, accountId);
+        return AccountResponse.builder()
+                .account(accountWithBalances.getAccount())
+                .balances(accountWithBalances.getBalances())
+                .build();
     }
 
     public void verifyAccountExists(UUID accountId) throws AccountMissingException {
@@ -60,7 +64,7 @@ public class AccountService {
         }
     }
 
-    private void verifyAccountExists(AccountResponse account, UUID accountId) throws AccountMissingException {
+    private void verifyAccountExists(AccountBalance account, UUID accountId) throws AccountMissingException {
         if (account == null || account.getAccount() == null) {
             throw new AccountMissingException(String.format(ExceptionTexts.ACCOUNT_NOT_FOUND, accountId));
         }
