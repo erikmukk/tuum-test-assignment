@@ -1,0 +1,33 @@
+# Use postgres/example user/password credentials
+version: '3.1'
+
+services:
+
+  postgres:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    volumes:
+      - ./src/main/resources/_dbinit:/docker-entrypoint-initdb.d/:ro
+    container_name: tuum_db
+    ports:
+      # Bind host port 5431 to PostgreSQL port 5432
+      - 5431:5432
+    environment:
+      POSTGRES_PASSWORD: pass
+      LANG: et_EE.utf8
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    ports:
+      - 5672:5672
+      - 15672:15672
+    volumes:
+      - ./src/main/resources/rabbitmq:/var/lib/rabbitmq/
+      - ./src/main/resources/rabbitmq:/var/log/rabbitmq
+    networks:
+      - rabbitmq_go_net
+
+networks:
+  rabbitmq_go_net:
+    driver: bridge

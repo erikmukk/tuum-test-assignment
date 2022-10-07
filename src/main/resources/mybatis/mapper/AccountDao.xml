@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.mukk.tuum.persistence.dao.AccountDao">
+
+	<resultMap id="BaseResultMap" type="com.mukk.tuum.persistence.entity.gen.AccountEntity">
+		<id column="account_id" jdbcType="VARCHAR" property="accountId" />
+		<result column="customer_id" jdbcType="VARCHAR" property="customerId" />
+	</resultMap>
+
+	<resultMap id="AccountWithCurrenciesResultMap" type="com.mukk.tuum.model.response.AccountResponse" autoMapping="true">
+		<id column="account_id" property="account.accountId" />
+		<result column="customer_id" property="account.customerId" />
+		<collection property="balances" ofType="com.mukk.tuum.persistence.entity.Balance" javaType="List" autoMapping="true">
+			<id column="balance_id" />
+		</collection>
+	</resultMap>
+
+	<select id="getAccountWithBalances" resultMap="AccountWithCurrenciesResultMap">
+		SELECT a.account_id, a.customer_id, b."currency", b.amount, b.balance_id
+		FROM tuum.account a
+		    LEFT JOIN tuum.balance b ON b.account_id = a.account_id
+		WHERE a.account_id = #{accountId};
+	</select>
+
+	<insert id="insert" parameterType="com.mukk.tuum.persistence.entity.gen.AccountEntity" useGeneratedKeys="true" keyProperty="account.accountId" keyColumn="account_id">
+		insert into tuum.account (customer_id)
+		values (#{account.customerId,jdbcType=VARCHAR})
+	</insert>
+
+	<select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select account_id, customer_id
+		from tuum.account
+		where account_id = #{accountId,jdbcType=VARCHAR}
+	</select>
+	<select id="getAll" resultMap="BaseResultMap">
+		SELECT * FROM tuum.account;
+	</select>
+</mapper>
