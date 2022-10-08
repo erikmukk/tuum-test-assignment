@@ -3,6 +3,8 @@ package com.mukk.tuum.service;
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.exception.ExceptionTexts;
 import com.mukk.tuum.model.enums.Currency;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import com.mukk.tuum.model.response.AccountResponse;
 import com.mukk.tuum.persistence.dao.AccountDao;
@@ -18,22 +20,27 @@ import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
 @Service
-@Transactional
+@Transactional(readOnly = true)
 public class AccountService {
 
     private final AccountDao accountDao;
     private final BalanceService balanceService;
+    private final RabbitSender rabbitSender;
 
+    @Transactional
     public AccountResponse create(final CreateAccountRequest request) {
         final var account = AccountEntity.builder()
                 .customerId(request.getCustomerId())
+                .country(request.getCountry().toUpperCase())
                 .build();
 
-        accountDao.insert(account);
+        insertAccount(account);
 
         final var createdBalances = balanceService.createBalances(request.getCurrencies(), UUID.fromString(account.getAccountId()));
+        account.setCountry(null);
         return AccountResponse.builder()
-                .account(account)
+                .accountId(UUID.fromString(account.getAccountId()))
+                .customerId(account.getCustomerId())
                 .balances(createdBalances.stream()
                         .map(b -> new Balance(Currency.valueOf(b.getCurrency()), b.getAmount()))
                         .collect(Collectors.toList()))
@@ -44,7 +51,8 @@ public class AccountService {
         final var accountWithBalances = accountDao.getAccountWithBalances(accountId.toString());
         verifyAccountExists(accountWithBalances, accountId);
         return AccountResponse.builder()
-                .account(accountWithBalances.getAccount())
+                .accountId(UUID.fromString(accountWithBalances.getAccount().getAccountId()))
+                .customerId(accountWithBalances.getAccount().getCustomerId())
                 .balances(accountWithBalances.getBalances())
                 .build();
     }
@@ -68,5 +76,13 @@ public class AccountService {
         if (account == null || account.getAccount() == null) {
             throw new AccountMissingException(String.format(ExceptionTexts.ACCOUNT_NOT_FOUND, accountId));
         }
+    }
+
+    private int insertAccount(AccountEntity entity) {
+        final var insert = accountDao.insert(entity);
+        if (insert == 1) {
+            rabbitSender.send(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.ACCOUNT, entity);
+        }
+        return insert;
     }
 }

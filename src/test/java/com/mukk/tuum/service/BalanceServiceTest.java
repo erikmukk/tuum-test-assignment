@@ -2,6 +2,8 @@ package com.mukk.tuum.service;
 
 import com.mukk.tuum.exception.InvalidCurrencyException;
 import com.mukk.tuum.model.enums.Currency;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.persistence.dao.BalanceDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
 import org.junit.jupiter.api.Nested;
@@ -21,6 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -34,6 +37,8 @@ class BalanceServiceTest {
 
     @Mock
     private BalanceDao balanceDao;
+    @Mock
+    private RabbitSender rabbitSender;
 
     @InjectMocks
     private BalanceService balanceService;
@@ -61,6 +66,7 @@ class BalanceServiceTest {
 
             final var result = balanceService.createBalances(CURRENCIES, ACCOUNT_ID);
 
+            verify(rabbitSender, times(2)).send(eq(RabbitDatabaseAction.INSERT), eq(RabbitDatabaseTable.BALANCE), any());
             verify(balanceDao, times(2)).insert(any(BalanceEntity.class));
             verify(balanceDao).getBalancesByAccountId(ACCOUNT_ID.toString());
             assertThat(result).isNotNull();
@@ -96,9 +102,12 @@ class BalanceServiceTest {
         @Test
         void succeeds() {
             final var balanceEntity = new BalanceEntity();
+            when(balanceDao.updateByPrimaryKey(balanceEntity)).thenReturn(1);
+
             balanceService.updateBalance(balanceEntity);
 
             verify(balanceDao).updateByPrimaryKey(balanceEntity);
+            verify(rabbitSender).send(eq(RabbitDatabaseAction.UPDATE), eq(RabbitDatabaseTable.BALANCE), any());
         }
     }
 

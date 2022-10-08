@@ -30,7 +30,7 @@ public class RabbitConfiguration {
     @Value("${rabbitmq.exchange}")
     private String exchange;
     @Value("${rabbitmq.routingkey}")
-    private String routingkey;
+    private String routingKey;
     @Value("${rabbitmq.username}")
     private String username;
     @Value("${rabbitmq.password}")
@@ -58,7 +58,7 @@ public class RabbitConfiguration {
 
     @Bean
     public Binding binding(Queue queue, DirectExchange exchange) {
-        return BindingBuilder.bind(queue).to(exchange).with(routingkey);
+        return BindingBuilder.bind(queue).to(exchange).with(routingKey);
     }
 
     @Bean

@@ -27,7 +27,7 @@ class AccountDaoTest extends DaoTestBase {
 
         @Test
         void without_explicitly_defining_account_id() {
-            final var accountEntity = AccountEntity.builder().customerId(CUSTOMER_ID.toString()).build();
+            final var accountEntity = AccountEntity.builder().customerId(CUSTOMER_ID.toString()).country("EST").build();
             final var insert = accountDao.insert(accountEntity);
 
             assertThat(insert).isEqualTo(1);
@@ -39,7 +39,7 @@ class AccountDaoTest extends DaoTestBase {
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class Get_account_succeeds {
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void get() {
             final var accountEntity = accountDao.selectByPrimaryKey(KNOWN_ACCOUNT_ID.toString());
@@ -47,9 +47,10 @@ class AccountDaoTest extends DaoTestBase {
             assertThat(accountEntity).isNotNull();
             assertThat(accountEntity.getAccountId()).isEqualTo(KNOWN_ACCOUNT_ID.toString());
             assertThat(accountEntity.getCustomerId()).isEqualTo(CUSTOMER_ID.toString());
+            assertThat(accountEntity.getCountry()).isNull();
         }
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void with_no_balances() {
             final var accountWithCurrencies = accountDao.getAccountWithBalances(KNOWN_ACCOUNT_ID.toString());
@@ -61,7 +62,7 @@ class AccountDaoTest extends DaoTestBase {
         }
 
         @Sql(statements = {
-                "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')",
+                "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.0, 'EUR')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 20.0, 'GBP')"
         })

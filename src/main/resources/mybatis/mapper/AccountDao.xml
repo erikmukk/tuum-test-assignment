@@ -23,8 +23,8 @@
 	</select>
 
 	<insert id="insert" parameterType="com.mukk.tuum.persistence.entity.gen.AccountEntity" useGeneratedKeys="true" keyProperty="account.accountId" keyColumn="account_id">
-		insert into tuum.account (customer_id)
-		values (#{account.customerId,jdbcType=VARCHAR})
+		insert into tuum.account (customer_id, country)
+		values (#{account.customerId,jdbcType=VARCHAR}, #{account.country, jdbcType = VARCHAR})
 	</insert>
 
 	<select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">

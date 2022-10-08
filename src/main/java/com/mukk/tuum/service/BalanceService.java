@@ -3,6 +3,8 @@ package com.mukk.tuum.service;
 import com.mukk.tuum.exception.ExceptionTexts;
 import com.mukk.tuum.exception.InvalidCurrencyException;
 import com.mukk.tuum.model.enums.Currency;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.persistence.dao.BalanceDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +16,13 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
+@Transactional(readOnly = true)
 public class BalanceService {
 
     private final BalanceDao balanceDao;
+    private final RabbitSender rabbitSender;
 
+    @Transactional
     public List<BalanceEntity> createBalances(List<Currency> currencies, UUID accountId) {
         for (final var currency : currencies) {
             var balance = BalanceEntity.builder()
@@ -26,7 +30,7 @@ public class BalanceService {
                     .currency(currency.getValue())
                     .amount(0.0)
                     .build();
-            balanceDao.insert(balance);
+            insertBalance(balance);
         }
         return balanceDao.getBalancesByAccountId(accountId.toString());
     }
@@ -40,10 +44,21 @@ public class BalanceService {
     }
 
     public void updateBalance(BalanceEntity balance) {
-        balanceDao.updateByPrimaryKey(balance);
+        final int update = balanceDao.updateByPrimaryKey(balance);
+        if (update == 1) {
+            rabbitSender.send(RabbitDatabaseAction.UPDATE, RabbitDatabaseTable.BALANCE, balance);
+        }
     }
 
     public BalanceEntity getBalanceForUpdating(UUID accountId, Currency currency) {
         return balanceDao.getBalanceByAccountIdForUpdate(accountId.toString(), currency.getValue());
+    }
+
+    private int insertBalance(BalanceEntity entity) {
+        final int insert = balanceDao.insert(entity);
+        if (insert == 1) {
+            rabbitSender.send(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.BALANCE, entity);
+        }
+        return insert;
     }
 }

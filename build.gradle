@@ -42,9 +42,7 @@ dependencies {
         exclude group: 'junit', module: 'junit'
     }
     testImplementation "org.testcontainers:postgresql:1.15.1"
-    testImplementation ("io.rest-assured:rest-assured:4.2.0") {
-        exclude group: 'com.sun.xml.bind', module: 'jaxb-osgi'
-    }
+    testImplementation "io.rest-assured:rest-assured:4.2.0"
     testImplementation "io.rest-assured:json-path:4.2.0"
     testImplementation "io.rest-assured:xml-path:4.2.0"
     testImplementation "io.rest-assured:spring-mock-mvc:4.2.0"

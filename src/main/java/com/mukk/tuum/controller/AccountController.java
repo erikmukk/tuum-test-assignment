@@ -4,7 +4,6 @@ import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import com.mukk.tuum.model.response.AccountResponse;
 import com.mukk.tuum.service.AccountService;
-import com.mukk.tuum.service.RabbitSender;
 import com.mukk.tuum.util.ServiceResponseUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,11 +24,8 @@ public class AccountController {
 
     private final AccountService accountService;
 
-    private final RabbitSender rabbitSender;
-
     @GetMapping("/{accountId}")
     public ResponseEntity<AccountResponse> get(@PathVariable final UUID accountId) throws AccountMissingException {
-        rabbitSender.send();
         return ServiceResponseUtil.ok(accountService.getAccountWithBalances(accountId));
     }
 

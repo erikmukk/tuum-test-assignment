@@ -24,7 +24,7 @@ class BalanceDaoTest extends DaoTestBase {
     @TestInstance(TestInstance.Lifecycle.PER_CLASS)
     class Get_balances_by_account_succeeds {
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void when_account_is_missing() {
             final var balances = balanceDao.getBalancesByAccountId(MISSING_ACCOUNT_ID.toString());
@@ -32,7 +32,7 @@ class BalanceDaoTest extends DaoTestBase {
             assertThat(balances).isNotNull().isEmpty();
         }
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void when_account_has_no_balances() {
             final var balances = balanceDao.getBalancesByAccountId(KNOWN_ACCOUNT_ID.toString());
@@ -41,7 +41,7 @@ class BalanceDaoTest extends DaoTestBase {
         }
 
         @Sql(statements = {
-                "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')",
+                "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.75, 'EUR')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 75.10, 'SEK')"
         })
@@ -72,7 +72,7 @@ class BalanceDaoTest extends DaoTestBase {
             assertThat(currencies).isNotNull().isEmpty();
         }
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void when_account_has_no_balances() {
             final var currencies = balanceDao.getAccountCurrencies(KNOWN_ACCOUNT_ID.toString());
@@ -81,7 +81,7 @@ class BalanceDaoTest extends DaoTestBase {
         }
 
         @Sql(statements = {
-                "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')",
+                "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.75, 'EUR')",
                 "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 75.10, 'SEK')"
         })

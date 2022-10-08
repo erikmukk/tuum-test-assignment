@@ -6,7 +6,8 @@ CREATE SCHEMA IF NOT EXISTS tuum AUTHORIZATION db_owner;
 
 CREATE TABLE IF NOT EXISTS tuum.account (
                                             account_id VARCHAR(36) default gen_random_uuid() primary key,
-                                            customer_id VARCHAR(255) NOT NULL
+                                            customer_id VARCHAR(255) NOT NULL,
+                                            country VARCHAR(3) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS tuum.balance (

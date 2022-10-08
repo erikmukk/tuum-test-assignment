@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 import java.util.UUID;
 
 @Data
@@ -31,7 +32,7 @@ public class TransactionRequest {
     @NotNull
     private TransactionDirection direction;
 
-    @NotNull
     @NotBlank
+    @Size(max = 255)
     private String description;
 }

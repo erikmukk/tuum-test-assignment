@@ -5,6 +5,8 @@ import com.mukk.tuum.exception.InsufficientFundsException;
 import com.mukk.tuum.exception.InvalidCurrencyException;
 import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.model.enums.TransactionDirection;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.TransactionRequest;
 import com.mukk.tuum.persistence.dao.TransactionDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
@@ -28,6 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -44,6 +47,8 @@ class TransactionServiceTest {
     private BalanceService balanceService;
     @Mock
     private TransactionDao transactionDao;
+    @Mock
+    private RabbitSender rabbitSender;
 
     @InjectMocks
     private TransactionService transactionService;
@@ -94,6 +99,7 @@ class TransactionServiceTest {
 
         final var result = assertDoesNotThrow(() -> transactionService.create(transactionRequest));
 
+        verify(rabbitSender).send(eq(RabbitDatabaseAction.INSERT), eq(RabbitDatabaseTable.TRANSACTION), any());
         verify(balanceService).updateBalance(balance);
         verify(transactionDao).insert(any(TransactionEntity.class));
         assertThat(balance.getAmount()).isEqualTo(25.0);

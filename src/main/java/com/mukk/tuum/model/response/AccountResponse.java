@@ -1,13 +1,13 @@
 package com.mukk.tuum.model.response;
 
 import com.mukk.tuum.persistence.entity.Balance;
-import com.mukk.tuum.persistence.entity.gen.AccountEntity;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -15,7 +15,9 @@ import java.util.List;
 @AllArgsConstructor
 public class AccountResponse {
 
-    private AccountEntity account;
+    private UUID accountId;
+
+    private String customerId;
 
     private List<Balance> balances;
 }

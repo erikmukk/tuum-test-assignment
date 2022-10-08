@@ -2,6 +2,8 @@ package com.mukk.tuum.service;
 
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.model.enums.Currency;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import com.mukk.tuum.persistence.dao.AccountDao;
 import com.mukk.tuum.persistence.entity.AccountBalance;
@@ -22,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,6 +40,8 @@ class AccountServiceTest {
     private AccountDao accountDao;
     @Mock
     private BalanceService balanceService;
+    @Mock
+    private RabbitSender rabbitSender;
 
     @InjectMocks
     private AccountService accountService;
@@ -78,6 +83,7 @@ class AccountServiceTest {
 
             verify(accountDao).insert(any(AccountEntity.class));
             verify(balanceService).createBalances(CURRENCIES, ACCOUNT_ID);
+            verify(rabbitSender).send(eq(RabbitDatabaseAction.INSERT), eq(RabbitDatabaseTable.ACCOUNT), any());
             assertThat(accountResponse).isNotNull();
         }
     }
@@ -88,7 +94,7 @@ class AccountServiceTest {
         @Test
         void succeeds() {
             when(accountDao.getAccountWithBalances(ACCOUNT_ID.toString()))
-                    .thenReturn(new AccountBalance(new AccountEntity(), List.of()));
+                    .thenReturn(new AccountBalance(new AccountEntity(UUID.randomUUID().toString(), "customerId", "EST"), List.of()));
 
             final var result = assertDoesNotThrow(() -> accountService.getAccountWithBalances(ACCOUNT_ID));
 

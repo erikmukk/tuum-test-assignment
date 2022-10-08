@@ -34,7 +34,7 @@ class TransactionDaoTest extends DaoTestBase {
             assertThat(result).isNotNull().isEmpty();
         }
 
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         @Test
         void when_none_are_present() {
             final var result = transactionDao.getByAccountId(KNOWN_ACCOUNT_ID.toString());
@@ -43,7 +43,7 @@ class TransactionDaoTest extends DaoTestBase {
         }
 
         @Sql(statements = {
-                "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')",
+                "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
                 "INSERT INTO tuum.transaction(account_id, amount, currency, description, direction) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.0, 'EUR', 'in 10', 'IN')",
                 "INSERT INTO tuum.transaction(account_id, amount, currency, description, direction) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 5.0, 'EUR', 'out 5', 'OUT')"
         })
@@ -75,7 +75,7 @@ class TransactionDaoTest extends DaoTestBase {
     class Insert_transaction {
 
         @Test
-        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')")
+        @Sql(statements = "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')")
         void succeeds() {
             final var transaction = TransactionEntity.builder()
                     .accountId(KNOWN_ACCOUNT_ID.toString())

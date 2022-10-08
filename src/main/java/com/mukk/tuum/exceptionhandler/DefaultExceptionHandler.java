@@ -1,6 +1,8 @@
 package com.mukk.tuum.exceptionhandler;
 
+import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.mukk.tuum.exception.AccountMissingException;
+import com.mukk.tuum.exception.ExceptionTexts;
 import com.mukk.tuum.exception.TransactionException;
 import com.mukk.tuum.util.ApiErrorResponse;
 import com.mukk.tuum.util.ServiceResponseUtil;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +31,17 @@ public class DefaultExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handle(HttpMessageNotReadableException ex, WebRequest request) {
         final var errorResponse = ApiErrorResponse.builder()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
-                .message(ex.getMessage())
-                .detail(ex.getMessage())
                 .path(((ServletWebRequest) request).getRequest().getRequestURI())
                 .build();
+        if (ex.getCause() instanceof InvalidFormatException) {
+            InvalidFormatException ifx = (InvalidFormatException) ex.getCause();
+            if (ifx.getTargetType() != null && ifx.getTargetType().isEnum()) {
+                String message = String.format(ExceptionTexts.INVALID_ENUM_FIELD_VALUE, ifx.getPath().get(0).getFieldName());
+                String details = String.format(ExceptionTexts.INVALID_ENUM_EXPLANATION, ifx.getValue(), Arrays.toString(ifx.getTargetType().getEnumConstants()));
+                errorResponse.setMessage(message);
+                errorResponse.setDetail(details);
+            }
+        }
         return ServiceResponseUtil.nok(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
@@ -39,7 +49,7 @@ public class DefaultExceptionHandler {
     @ResponseBody
     public ResponseEntity<ApiErrorResponse> handle(MethodArgumentNotValidException ex, WebRequest request) {
         List<String> messages = ex.getBindingResult().getAllErrors().stream()
-                .map(e -> ((FieldError) e).getField() + " " + e.getDefaultMessage())
+                .map(e -> ((FieldError) e).getField() + " field - " + e.getDefaultMessage())
                 .collect(Collectors.toList());
         final var errorResponse = ApiErrorResponse.builder()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())

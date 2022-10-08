@@ -37,7 +37,7 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
     }
 
     @Sql(statements = {
-            "INSERT INTO tuum.account(account_id, customer_id) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56')",
+            "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
             "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.75, 'EUR')",
             "INSERT INTO tuum.balance(account_id, amount, currency) VALUES ('909c39bd-e911-4030-a69c-e4b1a7f6054f', 75.10, 'SEK')"
     })
@@ -50,8 +50,8 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
         .then()
             .log().all()
             .statusCode(HttpStatus.OK.value())
-            .body("account.accountId", equalTo(KNOWN_ACCOUNT_ID.toString()))
-            .body("account.customerId", equalTo(KNOWN_CUSTOMER_ID.toString()))
+            .body("accountId", equalTo(KNOWN_ACCOUNT_ID.toString()))
+            .body("customerId", equalTo(KNOWN_CUSTOMER_ID.toString()))
             .body("balances", hasSize(2))
             .body("balances[0].currency", equalTo(Currency.EUR.getValue()))
             .body("balances[0].amount", is(10.75f))
@@ -64,7 +64,7 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
         final var request = CreateAccountRequest.builder()
                 .customerId(KNOWN_CUSTOMER_ID.toString())
                 .currencies(List.of(Currency.EUR, Currency.GBP))
-                .country("Estonia")
+                .country("EST")
                 .build();
 
         given()
@@ -75,8 +75,8 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
         .then()
             .log().all()
             .statusCode(HttpStatus.CREATED.value())
-            .body("account.accountId", notNullValue())
-            .body("account.customerId", equalTo(KNOWN_CUSTOMER_ID.toString()))
+            .body("accountId", notNullValue())
+            .body("customerId", equalTo(KNOWN_CUSTOMER_ID.toString()))
             .body("balances", hasSize(2))
             .body("balances[0].currency", equalTo(Currency.EUR.getValue()))
             .body("balances[0].amount", is(0.00f))
@@ -95,10 +95,11 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
             .log().all()
             .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
             .body("statusCode", equalTo(HttpStatus.UNPROCESSABLE_ENTITY.value()))
-            .body("message", hasSize(3))
-            .body("message", hasItem("customerId must not be null"))
-            .body("message", hasItem("currencies must not be null"))
-            .body("message", hasItem("country must not be null"))
+            .body("message", hasSize(4))
+            .body("message", hasItem("customerId field - must not be blank"))
+            .body("message", hasItem("currencies field - must not be null"))
+            .body("message", hasItem("country field - must not be blank"))
+            .body("message", hasItem("country field - invalid country code"))
             .body("path", equalTo("/account"))
             .body("timeStamp", notNullValue());
     }

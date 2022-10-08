@@ -13,4 +13,6 @@ public class AccountEntity {
     private String accountId;
 
     private String customerId;
+
+    private String country;
 }
