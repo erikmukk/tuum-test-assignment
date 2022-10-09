@@ -3,8 +3,6 @@ package com.mukk.tuum.service;
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.exception.ExceptionTexts;
 import com.mukk.tuum.model.enums.Currency;
-import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
-import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import com.mukk.tuum.model.response.AccountResponse;
 import com.mukk.tuum.persistence.dao.AccountDao;
@@ -25,7 +23,6 @@ public class AccountService {
 
     private final AccountDao accountDao;
     private final BalanceService balanceService;
-    private final RabbitSender rabbitSender;
 
     @Transactional
     public AccountResponse create(final CreateAccountRequest request) {
@@ -78,11 +75,7 @@ public class AccountService {
         }
     }
 
-    private int insertAccount(AccountEntity entity) {
-        final var insert = accountDao.insert(entity);
-        if (insert == 1) {
-            rabbitSender.send(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.ACCOUNT, entity);
-        }
-        return insert;
+    public int insertAccount(AccountEntity entity) {
+        return accountDao.insert(entity);
     }
 }

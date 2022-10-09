@@ -2,8 +2,6 @@ package com.mukk.tuum.service;
 
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.exception.TransactionException;
-import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
-import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.CreateTransactionRequest;
 import com.mukk.tuum.model.response.CreateTransactionResponse;
 import com.mukk.tuum.model.response.TransactionResponse;
@@ -26,7 +24,6 @@ public class TransactionService {
     private final AccountService accountService;
     private final BalanceService balanceService;
     private final TransactionDao transactionDao;
-    private final RabbitSender rabbitSender;
 
     @Transactional(readOnly = true)
     public List<TransactionResponse> get(UUID accountId) throws AccountMissingException {
@@ -67,11 +64,7 @@ public class TransactionService {
                 .build();
     }
 
-    private int insertTransaction(TransactionEntity entity) {
-        final var insert = transactionDao.insert(entity);
-        if (insert == 1) {
-            rabbitSender.send(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.TRANSACTION, entity);
-        }
-        return insert;
+    public int insertTransaction(TransactionEntity entity) {
+        return transactionDao.insert(entity);
     }
 }
