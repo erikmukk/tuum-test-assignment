@@ -2,20 +2,6 @@
 version: '3.1'
 
 services:
-  tuum-application:
-    image: openjdk:11
-    container_name: tuum-application
-    ports:
-      - 8080:8080
-    volumes:
-      - .:/usr/app
-    command: ['java', '-jar', '-Dspring.profiles.active=docker', '/usr/app/build/libs/tuum-0.0.1-SNAPSHOT.jar']
-    depends_on:
-      - postgres
-      - rabbitmq
-    networks:
-      - rabbitmq_go_net
-
   postgres:
     build:
       context: ./
@@ -29,8 +15,6 @@ services:
     environment:
       POSTGRES_PASSWORD: pass
       LANG: et_EE.utf8
-    networks:
-      - rabbitmq_go_net
 
   rabbitmq:
     image: rabbitmq:3-management-alpine
