@@ -12,11 +12,9 @@
             <property name="builder.fluent" value="true"/>
             <!-- annotation's option(String) -->
             <property name="builder.builderMethodName" value="myBuilder"/>
-
             <property name="accessors" value="true"/>
             <!-- annotation's option(array of String) -->
             <property name="accessors.prefix" value="m_, _"/>
-
             <!-- disable annotations -->
             <property name="allArgsConstructor" value="true"/>
             <property name="noArgsConstructor" value="true"/>
@@ -37,7 +35,7 @@
 
         <!-- Local source database configuration -->
         <jdbcConnection driverClass="org.postgresql.Driver"
-                        connectionURL="jdbc:postgresql://localhost:5431/tuum_db"
+                        connectionURL="jdbc:postgresql://localhost:5432/tuum_db"
                         userId="db_owner"
                         password="pass"
         />
@@ -50,9 +48,6 @@
         <!-- Tables & columns generation configuration -->
         <table schema="tuum" tableName="%" enableDeleteByPrimaryKey = "true" enableDeleteByExample = "false">
             <domainObjectRenamingRule searchString="$" replaceString="Entity" />
-            <!-- TODO check this. Add field to db please. Also audit tables -->
-            <ignoreColumnsByRegex pattern="^(?:created|modified)_(?:by|dtime)$"/>
-            <columnOverride column="kasutaja_id" javaType="java.util.UUID"></columnOverride>
         </table>
     </context>
 </generatorConfiguration>
