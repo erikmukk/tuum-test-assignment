@@ -4,7 +4,7 @@ import com.mukk.tuum.exception.ExceptionTexts;
 import com.mukk.tuum.exception.InsufficientFundsException;
 import com.mukk.tuum.exception.TransactionException;
 import com.mukk.tuum.model.enums.TransactionDirection;
-import com.mukk.tuum.model.request.TransactionRequest;
+import com.mukk.tuum.model.request.CreateTransactionRequest;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
 
 public class TransactionUtils {
@@ -13,7 +13,7 @@ public class TransactionUtils {
         throw new IllegalStateException("Utility class");
     }
 
-    public static void verifyHasEnoughBalance(BalanceEntity balance, TransactionRequest request) throws TransactionException {
+    public static void verifyHasEnoughBalance(BalanceEntity balance, CreateTransactionRequest request) throws TransactionException {
         if (TransactionDirection.OUT.equals(request.getDirection())
                 && Double.compare(balance.getAmount(), request.getAmount()) < 0) {
             throw new InsufficientFundsException(String.format(ExceptionTexts.INSUFFICIENT_FUNDS, balance.getAmount(), request.getAmount()));

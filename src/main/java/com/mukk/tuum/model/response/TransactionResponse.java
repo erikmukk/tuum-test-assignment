@@ -12,31 +12,29 @@ import java.util.UUID;
 @Data
 @Builder
 @AllArgsConstructor
-public class CreateTransactionResponse {
-
-    private UUID accountId;
+public class TransactionResponse {
 
     private UUID transactionId;
+
+    private UUID accountId;
 
     private Double amount;
 
     private Currency currency;
 
-    private TransactionDirection direction;
-
     private String description;
 
-    private Double balance;
+    private TransactionDirection direction;
 
-    public static CreateTransactionResponse fromTransactionEntityAndBalance(TransactionEntity t, Double balance) {
-        return CreateTransactionResponse.builder()
+    public static TransactionResponse fromTransactionEntity(TransactionEntity t) {
+        return TransactionResponse.builder()
                 .transactionId(UUID.fromString(t.getTransactionId()))
                 .accountId(UUID.fromString(t.getAccountId()))
                 .amount(t.getAmount())
                 .currency(Currency.valueOf(t.getCurrency()))
                 .description(t.getDescription())
                 .direction(TransactionDirection.valueOf(t.getDirection()))
-                .balance(balance)
                 .build();
     }
+
 }

@@ -7,7 +7,7 @@ import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.model.enums.TransactionDirection;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
-import com.mukk.tuum.model.request.TransactionRequest;
+import com.mukk.tuum.model.request.CreateTransactionRequest;
 import com.mukk.tuum.persistence.dao.TransactionDao;
 import com.mukk.tuum.persistence.entity.gen.BalanceEntity;
 import com.mukk.tuum.persistence.entity.gen.TransactionEntity;
@@ -80,7 +80,7 @@ class TransactionServiceTest {
     @ParameterizedTest
     @MethodSource("transactionArgumentProvider")
     void create_transaction_succeeds(TransactionDirection transactionDirection, Double initialBalance) {
-        final var transactionRequest = TransactionRequest.builder()
+        final var transactionRequest = CreateTransactionRequest.builder()
                 .accountId(ACCOUNT_ID)
                 .description("DESC")
                 .direction(transactionDirection)
@@ -131,7 +131,7 @@ class TransactionServiceTest {
     class Create_transaction_fails {
         @Test
         void due_to_missing_account() throws AccountMissingException {
-            final var transactionRequest = TransactionRequest.builder().accountId(ACCOUNT_ID).build();
+            final var transactionRequest = CreateTransactionRequest.builder().accountId(ACCOUNT_ID).build();
 
             doThrow(new AccountMissingException("")).when(accountService).verifyAccountExists(ACCOUNT_ID);
 
@@ -140,7 +140,7 @@ class TransactionServiceTest {
 
         @Test
         void due_to_unavailable_currency() throws InvalidCurrencyException {
-            final var transactionRequest = TransactionRequest.builder()
+            final var transactionRequest = CreateTransactionRequest.builder()
                     .accountId(ACCOUNT_ID)
                     .currency(Currency.GBP)
                     .build();
@@ -153,7 +153,7 @@ class TransactionServiceTest {
 
         @Test
         void due_to_insufficient_funds() {
-            final var transactionRequest = TransactionRequest.builder()
+            final var transactionRequest = CreateTransactionRequest.builder()
                     .accountId(ACCOUNT_ID)
                     .description("DESC")
                     .direction(TransactionDirection.OUT)

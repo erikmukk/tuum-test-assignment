@@ -74,7 +74,7 @@ public class DefaultExceptionHandler {
     @ResponseBody
     public ResponseEntity<ApiErrorResponse> handle(TransactionException ex, WebRequest request) {
         final var errorResponse = ApiErrorResponse.builder()
-                .statusCode(HttpStatus.NOT_FOUND.value())
+                .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .message(ex.getMessage())
                 .path(((ServletWebRequest) request).getRequest().getRequestURI())
                 .build();

@@ -17,7 +17,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @AllArgsConstructor
-public class TransactionRequest {
+public class CreateTransactionRequest {
 
     @NotNull
     private UUID accountId;

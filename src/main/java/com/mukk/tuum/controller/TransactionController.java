@@ -2,9 +2,9 @@ package com.mukk.tuum.controller;
 
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.exception.TransactionException;
-import com.mukk.tuum.model.request.TransactionRequest;
+import com.mukk.tuum.model.request.CreateTransactionRequest;
 import com.mukk.tuum.model.response.CreateTransactionResponse;
-import com.mukk.tuum.persistence.entity.gen.TransactionEntity;
+import com.mukk.tuum.model.response.TransactionResponse;
 import com.mukk.tuum.service.TransactionService;
 import com.mukk.tuum.util.ServiceResponseUtil;
 import lombok.RequiredArgsConstructor;
@@ -28,12 +28,12 @@ public class TransactionController {
     private final TransactionService transactionService;
 
     @PostMapping
-    public ResponseEntity<CreateTransactionResponse> create(@Valid @RequestBody TransactionRequest request) throws AccountMissingException, TransactionException {
+    public ResponseEntity<CreateTransactionResponse> create(@Valid @RequestBody CreateTransactionRequest request) throws AccountMissingException, TransactionException {
         return ServiceResponseUtil.created(transactionService.create(request));
     }
 
     @GetMapping("/account/{accountId}")
-    public ResponseEntity<List<TransactionEntity>> getByAccountId(@PathVariable final UUID accountId) throws AccountMissingException {
+    public ResponseEntity<List<TransactionResponse>> getByAccountId(@PathVariable final UUID accountId) throws AccountMissingException {
         return ServiceResponseUtil.ok(transactionService.get(accountId));
     }
 }

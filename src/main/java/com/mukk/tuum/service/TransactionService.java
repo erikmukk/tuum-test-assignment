@@ -2,11 +2,11 @@ package com.mukk.tuum.service;
 
 import com.mukk.tuum.exception.AccountMissingException;
 import com.mukk.tuum.exception.TransactionException;
-import com.mukk.tuum.model.enums.Currency;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
-import com.mukk.tuum.model.request.TransactionRequest;
+import com.mukk.tuum.model.request.CreateTransactionRequest;
 import com.mukk.tuum.model.response.CreateTransactionResponse;
+import com.mukk.tuum.model.response.TransactionResponse;
 import com.mukk.tuum.persistence.dao.TransactionDao;
 import com.mukk.tuum.persistence.entity.gen.TransactionEntity;
 import com.mukk.tuum.util.TransactionUtils;
@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -28,12 +29,16 @@ public class TransactionService {
     private final RabbitSender rabbitSender;
 
     @Transactional(readOnly = true)
-    public List<TransactionEntity> get(UUID accountId) throws AccountMissingException {
+    public List<TransactionResponse> get(UUID accountId) throws AccountMissingException {
         accountService.verifyAccountExists(accountId);
-        return transactionDao.getByAccountId(accountId.toString());
+        final var transactions = transactionDao.getByAccountId(accountId.toString());
+
+        return transactions.stream()
+                .map(TransactionResponse::fromTransactionEntity)
+                .collect(Collectors.toList());
     }
 
-    public CreateTransactionResponse create(TransactionRequest request) throws AccountMissingException, TransactionException {
+    public CreateTransactionResponse create(CreateTransactionRequest request) throws AccountMissingException, TransactionException {
         accountService.verifyAccountExists(request.getAccountId());
         balanceService.verifyAccountHasCurrency(request.getCurrency(), request.getAccountId());
 
@@ -49,18 +54,10 @@ public class TransactionService {
 
         insertTransaction(transaction);
 
-        return CreateTransactionResponse.builder()
-                .accountId(request.getAccountId())
-                .transactionId(UUID.fromString(transaction.getTransactionId()))
-                .amount(request.getAmount())
-                .currency(Currency.valueOf(balanceBeingUpdated.getCurrency()))
-                .direction(request.getDirection())
-                .description(request.getDescription())
-                .balance(balanceBeingUpdated.getAmount())
-                .build();
+        return CreateTransactionResponse.fromTransactionEntityAndBalance(transaction, balanceBeingUpdated.getAmount());
     }
 
-    private TransactionEntity createTransaction(TransactionRequest request) {
+    private TransactionEntity createTransaction(CreateTransactionRequest request) {
         return TransactionEntity.builder()
                 .accountId(request.getAccountId().toString())
                 .currency(request.getCurrency().getValue())

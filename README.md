@@ -88,6 +88,14 @@ it through BalanceService.
 
 ### Estimation of how many transactions app can handle per second
 
-TODO fill me in
+TODO fill me in 
+
+50 transactions created? One request with Postman takes around 20ms. App is running only on one thread
 
 ### Considerations for scaling applications horizontally
+
+TODO fill me in
+
+Firstly, multithreading should be used. Right now when endpoint is called simultaneously and breakpoint 
+is set which suspends the tread, other request is also waiting behind that.
+

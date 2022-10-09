@@ -37,11 +37,11 @@ dependencies {
     testImplementation 'org.springframework.amqp:spring-rabbit-test'
     testImplementation 'org.springframework.security:spring-security-test'
     testImplementation group: 'org.mockito', name: 'mockito-junit-jupiter', version: '4.8.0'
-    testImplementation "org.testcontainers:junit-jupiter:1.15.1"
-    testImplementation ("org.testcontainers:testcontainers:1.15.1") {
+    testImplementation "org.testcontainers:junit-jupiter:1.17.4"
+    testImplementation ("org.testcontainers:testcontainers:1.17.4") {
         exclude group: 'junit', module: 'junit'
     }
-    testImplementation "org.testcontainers:postgresql:1.15.1"
+    testImplementation "org.testcontainers:postgresql:1.17.4"
     testImplementation "io.rest-assured:rest-assured:4.2.0"
     testImplementation "io.rest-assured:json-path:4.2.0"
     testImplementation "io.rest-assured:xml-path:4.2.0"

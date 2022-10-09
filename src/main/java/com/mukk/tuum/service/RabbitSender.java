@@ -1,24 +1,28 @@
 package com.mukk.tuum.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.rabbit.RabbitMessage;
-import org.springframework.amqp.core.AmqpTemplate;
+import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.amqp.core.Queue;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class RabbitSender {
 
-    @Autowired
-    private AmqpTemplate rabbitTemplate;
+    private final RabbitTemplate rabbitTemplate;
 
-    @Autowired
-    private Queue queue;
+    private final Queue queue;
 
+    private final ObjectMapper objectMapper;
+
+    @SneakyThrows
     public void send(RabbitDatabaseAction databaseAction, RabbitDatabaseTable table, Object message) {
-        rabbitTemplate.convertAndSend(queue.getName(), createMessage(databaseAction, table, message));
+        rabbitTemplate.convertAndSend(queue.getName(), objectMapper.writeValueAsString(createMessage(databaseAction, table, message)));
     }
 
     private RabbitMessage createMessage(RabbitDatabaseAction databaseAction, RabbitDatabaseTable table, Object message) {

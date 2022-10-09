@@ -1,9 +1,12 @@
 package com.mukk.tuum.controller;
 
 import com.mukk.tuum.model.enums.Currency;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
+import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
 import com.mukk.tuum.model.request.CreateAccountRequest;
 import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentMatchers;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -12,6 +15,9 @@ import java.util.UUID;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
 import static org.hamcrest.Matchers.*;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 class AccountControllerIntegrationTest extends IntegrationTestBase {
 
@@ -82,6 +88,8 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
             .body("balances[0].amount", is(0.00f))
             .body("balances[1].currency", equalTo(Currency.GBP.getValue()))
             .body("balances[1].amount", is(0.00f));
+        verify(rabbitSender).send(eq(RabbitDatabaseAction.INSERT), eq(RabbitDatabaseTable.ACCOUNT), ArgumentMatchers.any());
+        verify(rabbitSender, times(2)).send(eq(RabbitDatabaseAction.INSERT), eq(RabbitDatabaseTable.BALANCE), ArgumentMatchers.any());
     }
 
     @Test
@@ -100,6 +108,27 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
             .body("message", hasItem("currencies field - must not be null"))
             .body("message", hasItem("country field - must not be blank"))
             .body("message", hasItem("country field - invalid country code"))
+            .body("path", equalTo("/account"))
+            .body("timeStamp", notNullValue());
+    }
+
+    @Test
+    void fails_to_create_account_invalid_enum_value() {
+        given()
+            .contentType(ContentType.JSON)
+            .body("{ " +
+                    " \"customerId\": \"116a84ba-3629-46b3-9fa1-a3667268ce56\", " +
+                    " \"currencies\": [\"EURS\"], " +
+                    " \"country\": \"EST\" " +
+                    "}")
+        .when()
+            .post(ACCOUNT_BASE_PATH)
+        .then()
+            .log().all()
+            .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
+            .body("statusCode", equalTo(HttpStatus.UNPROCESSABLE_ENTITY.value()))
+            .body("message", equalTo("Invalid value for field 'currencies'."))
+            .body("detail", equalTo("Provided value 'EURS', expected one of '[EUR, GBP, SEK, USD]'"))
             .body("path", equalTo("/account"))
             .body("timeStamp", notNullValue());
     }

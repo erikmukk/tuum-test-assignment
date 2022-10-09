@@ -7,11 +7,22 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 @Configuration
 public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
+    private final String[] SWAGGER_WHITELIST = {
+            "/api-docs",
+            "/configuration/ui",
+            "/swagger-resources/**",
+            "/configuration/**",
+            "/swagger-ui.html",
+            "/swagger-ui/index.html",
+            "/swagger-ui/**"
+    };
+
     @Override
     protected void configure(HttpSecurity httpSecurity) throws Exception {
         httpSecurity.authorizeRequests()
-                .antMatchers("/account", "/account/**", "/transaction", "/transaction/**", "**")
-                .permitAll().anyRequest().authenticated()
+                .antMatchers("/account", "/account/**", "/transaction", "/transaction/**").permitAll()
+                .antMatchers(SWAGGER_WHITELIST).permitAll()
+                .anyRequest().authenticated()
                 .and().csrf().disable();
     }
 
