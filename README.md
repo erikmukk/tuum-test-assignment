@@ -10,18 +10,18 @@ You are looking at the source code, which is a single SpringBoot application.
 
 Technologies used for implementation:
 * Java 11
-* Gradle 6.5.1
+* Gradle 6.8.3
 * SpringBoot 2.7.4
 * MyBatis (version should be 3.5.5, it comes from mybatis-spring-boot-starter:2.1.3)
 * RabbitMQ amqp-client 5.16.0
 * Postgres 13
-* MyBatis Generator 1.4.0
+* MyBatis Generator 1.4.1
 * Springfox Swagger UI 3.0.0
 * Lombok
 
 Technologies used for testing:
 * jUnit 5
-* Testcontainers 1.5.1
+* Testcontainers 1.17.4
 * REST Assured 4.2.0
 
 ### How to run the application locally?
@@ -30,8 +30,8 @@ The easiest way to run this application locally for this demo, would be with Doc
 
 Steps to follow for demo (this has been tested on Windows 10 since I have access to that):
 1) Navigate to project root folder in terminal.
-2) Run `./gradlew bootJar`.
-3) Run `docker-compose up`.
+2) Run `./gradlew bootJar` to build the JAR file.
+3) Run `docker-compose up` to startup JAR, Postgres and RabbitMQ.
 4) Wait for services to come up and application will be accessible on `localhost:8080`.
 5) Head over to `http://localhost:8080/swagger-ui/index.html` to see the Swagger for implemented endpoints.
 
@@ -89,7 +89,14 @@ each service can call only respective DAO directly.
 For example AccountService can call only AccountDAO directly. If it needs access to BalanceDAO, it does
 it through BalanceService.
 
+
+6. I have hardcoded all the secrets as of now, because this is here just for local demo, nothing more.
+I could pass values using an env file to docker-compose, but for me, it seemed out of the scope for this test assignment.
+
+
 ### Estimation of how many transactions app can handle per second
+
+My development machine (a laptop) has Intel i7-8565U CPU and 24GB of ram.
 
 Locally I can see that creation of one transaction takes about 15-20ms. So, if it would be constantly the same,
 then in 1 minute it could handle 50 to 66 transaction requests. But let´s factor in that there is more load on server

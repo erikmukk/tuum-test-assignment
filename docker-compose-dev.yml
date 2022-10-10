@@ -23,8 +23,7 @@ services:
       - 5672:5672
       - 15672:15672
     volumes:
-      - ./src/main/resources/rabbitmq:/var/lib/rabbitmq/
-      - ./src/main/resources/rabbitmq:/var/log/rabbitmq
+      - ~/.docker-rabbit/rabbitmq-dev/data/:/var/lib/rabbitmq/mnesia/
     networks:
       - rabbitmq_go_net
 
