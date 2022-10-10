@@ -28,7 +28,7 @@ Technologies used for testing:
 
 The easiest way to run this application locally for this demo, would be with Docker.
 
-Steps (this has been tested on Windows 10 since I have access to that):
+Steps to follow for demo (this has been tested on Windows 10 since I have access to that):
 1) Navigate to project root folder in terminal.
 2) Run `./gradlew bootJar`.
 3) Run `docker-compose up`.
@@ -57,8 +57,7 @@ Application still needs to be started up, using `gradlew bootRun`, for example.
 
 1) I decided to use MyBatis with XML-file approach. I have not worked with MyBatis too much before and MyBatis documentation
 did not help me out too much, neither did the rest of the Internet for XML-based approach.
-So I had difficulties setting it up. I have only worked with "pre-configured" implementations in the past. 
-Therefore, I decided to go with XML approach, because that was at least a little familiar.
+So I had difficulties setting it up. Therefore, I decided to go with XML approach, because that seemed more logical.
 
 
 2) I decided to use MyBatis generator to make it easy to keep entities in code and in DB in sync. It automatically
@@ -67,12 +66,13 @@ generates entities based off database structure.
 
 3) For MyBatis, I did not figure out how to use TypeHandlers properly. This resulted in some workarounds, such as 
 I could not generate correct data types for every property in entities. For example, database generates
-primary key for every entry automatically, but data type in entity is "String", not "UUID" as defined in database. 
+primary key for every entry automatically, but data type in entity is "String", not "UUID". If I did define it as uuid
+in database, generator would generate it as "Object", which would have been worse than "String".
 Same issue for enums, when I tried defining an enum in database, but it would pop-up as "String" or "Object" in code, 
 I decided to keep it as "String" in the end.
 
 
-4) RabbitMQ message publishing. I decided to create an aspect, which would automatically call RabbitService, which sends
+4) RabbitMQ message publishing. I decided to create a pointcut aspect, which would automatically call RabbitService, which sends
 a message on database insert and update. I wish that I could have implemented it in a way,
 that it triggers when DAO interface method is called, but it did not work out. Therefore, it triggers
 when a service wrapper method for database insert/update is invoked, like here:
@@ -91,14 +91,20 @@ it through BalanceService.
 
 ### Estimation of how many transactions app can handle per second
 
-TODO fill me in 
-
-50 transactions created? One request with Postman takes around 20ms. App is running only on one thread
+Locally I can see that creation of one transaction takes about 15-20ms. So, if it would be constantly the same,
+then in 1 minute it could handle 50 to 66 transaction requests. But let´s factor in that there is more load on server
+due to actually handling requests constantly, I will reduce the number down to <b>40 transaction creations per second</b>.
 
 ### Considerations for scaling applications horizontally
 
-TODO fill me in
-
 Firstly, multithreading should be used. Right now when endpoint is called simultaneously and breakpoint 
 is set which suspends the tread, other request is also waiting behind that.
+
+If multiple threads were accepting traffic, it would already improve performance.
+
+Eventually I would have to make changes to infrastructure - separate server and DB to different machines.
+It would increase both, server and DB performance.
+
+When that is not enough, servers could be spread across multiple physical machines. Then a load-balancer (such as NGINX)
+should be introduced, which would spread the load between all the machines.
 

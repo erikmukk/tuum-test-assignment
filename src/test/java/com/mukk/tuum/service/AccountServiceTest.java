@@ -29,7 +29,7 @@ import static org.mockito.Mockito.when;
 class AccountServiceTest {
 
     private static final UUID ACCOUNT_ID = UUID.randomUUID();
-    private static final String CUSTOMER_ID = UUID.randomUUID().toString();
+    private static final UUID CUSTOMER_ID = UUID.randomUUID();
     private static final String COUNTRY = "EST";
     private static final List<Currency> CURRENCIES = List.of(Currency.EUR, Currency.GBP);
 

@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 import static io.restassured.module.mockmvc.RestAssuredMockMvc.given;
@@ -27,7 +28,7 @@ class TransactionControllerIntegrationTest extends IntegrationTestBase {
         final var body = CreateTransactionRequest.builder()
                 .accountId(MISSING_ACCOUNT_ID)
                 .direction(TransactionDirection.IN)
-                .amount(10.0)
+                .amount(BigDecimal.valueOf(10.0))
                 .currency(Currency.EUR)
                 .description("desc")
                 .build();
@@ -55,7 +56,7 @@ class TransactionControllerIntegrationTest extends IntegrationTestBase {
         final var body = CreateTransactionRequest.builder()
                 .accountId(KNOWN_ACCOUNT_ID)
                 .direction(TransactionDirection.OUT)
-                .amount(10.76)
+                .amount(BigDecimal.valueOf(10.76))
                 .currency(Currency.EUR)
                 .description("desc")
                 .build();
@@ -84,7 +85,7 @@ class TransactionControllerIntegrationTest extends IntegrationTestBase {
         final var body = CreateTransactionRequest.builder()
                 .accountId(KNOWN_ACCOUNT_ID)
                 .direction(TransactionDirection.OUT)
-                .amount(10.0)
+                .amount(BigDecimal.valueOf(10.0))
                 .currency(Currency.EUR)
                 .description("desc")
                 .build();

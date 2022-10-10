@@ -8,6 +8,8 @@ import org.junit.jupiter.api.TestInstance;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.jdbc.Sql;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -63,8 +65,8 @@ class AccountDaoTest extends DaoTestBase {
 
         @Sql(statements = {
                 "INSERT INTO tuum.account(account_id, customer_id, country) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', '116a84ba-3629-46b3-9fa1-a3667268ce56', 'EST')",
-                "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.0, 'EUR')",
-                "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 20.0, 'GBP')"
+                "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 10.00, 'EUR')",
+                "INSERT INTO tuum.balance(account_id, amount, currency) VALUES('909c39bd-e911-4030-a69c-e4b1a7f6054f', 20.00, 'GBP')"
         })
         @Test
         void with_balances() {
@@ -72,9 +74,9 @@ class AccountDaoTest extends DaoTestBase {
 
             assertThat(accountWithCurrencies.getBalances()).hasSize(2);
             assertThat(accountWithCurrencies.getBalances().get(0).getCurrency()).isEqualTo(Currency.EUR);
-            assertThat(accountWithCurrencies.getBalances().get(0).getAmount()).isEqualTo(10.0);
+            assertThat(accountWithCurrencies.getBalances().get(0).getAmount()).isEqualTo(BigDecimal.valueOf(10.0).setScale(2, RoundingMode.UP));
             assertThat(accountWithCurrencies.getBalances().get(1).getCurrency()).isEqualTo(Currency.GBP);
-            assertThat(accountWithCurrencies.getBalances().get(1).getAmount()).isEqualTo(20.0);
+            assertThat(accountWithCurrencies.getBalances().get(1).getAmount()).isEqualTo(BigDecimal.valueOf(20.0).setScale(2, RoundingMode.UP));
         }
     }
 

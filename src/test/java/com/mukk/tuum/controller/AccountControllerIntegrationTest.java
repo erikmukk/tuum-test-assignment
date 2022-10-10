@@ -68,7 +68,7 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
     @Test
     void creates_account() {
         final var request = CreateAccountRequest.builder()
-                .customerId(KNOWN_CUSTOMER_ID.toString())
+                .customerId(KNOWN_CUSTOMER_ID)
                 .currencies(List.of(Currency.EUR, Currency.GBP))
                 .country("EST")
                 .build();
@@ -104,7 +104,7 @@ class AccountControllerIntegrationTest extends IntegrationTestBase {
             .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
             .body("statusCode", equalTo(HttpStatus.UNPROCESSABLE_ENTITY.value()))
             .body("message", hasSize(4))
-            .body("message", hasItem("customerId field - must not be blank"))
+            .body("message", hasItem("customerId field - must not be null"))
             .body("message", hasItem("currencies field - must not be null"))
             .body("message", hasItem("country field - must not be blank"))
             .body("message", hasItem("country field - invalid country code"))

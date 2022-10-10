@@ -44,7 +44,7 @@ public class TransactionService {
         TransactionUtils.verifyHasEnoughBalance(balanceBeingUpdated, request);
 
         final var newBalance = TransactionUtils.getNewAmount(balanceBeingUpdated.getAmount(), request.getAmount(), request.getDirection());
-        balanceBeingUpdated.setAmount(newBalance);
+        balanceBeingUpdated.setAmount(newBalance.doubleValue());
         balanceService.updateBalance(balanceBeingUpdated);
 
         final var transaction = createTransaction(request);
@@ -58,7 +58,7 @@ public class TransactionService {
         return TransactionEntity.builder()
                 .accountId(request.getAccountId().toString())
                 .currency(request.getCurrency().getValue())
-                .amount(request.getAmount())
+                .amount(request.getAmount().doubleValue())
                 .description(request.getDescription())
                 .direction(request.getDirection().getValue())
                 .build();

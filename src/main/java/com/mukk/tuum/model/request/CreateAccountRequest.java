@@ -11,6 +11,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -18,8 +19,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CreateAccountRequest {
 
-    @NotBlank
-    private String customerId;
+    @NotNull
+    private UUID customerId;
 
     @NotBlank
     @Size(min = 3, max = 3)

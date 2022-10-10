@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.UUID;
 
 @Data
@@ -26,7 +28,7 @@ public class CreateTransactionResponse {
 
     private String description;
 
-    private Double balance;
+    private BigDecimal balance;
 
     public static CreateTransactionResponse fromTransactionEntityAndBalance(TransactionEntity t, Double balance) {
         return CreateTransactionResponse.builder()
@@ -36,7 +38,7 @@ public class CreateTransactionResponse {
                 .currency(Currency.valueOf(t.getCurrency()))
                 .description(t.getDescription())
                 .direction(TransactionDirection.valueOf(t.getDirection()))
-                .balance(balance)
+                .balance(BigDecimal.valueOf(balance).setScale(2, RoundingMode.UP))
                 .build();
     }
 }

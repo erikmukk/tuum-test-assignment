@@ -18,7 +18,7 @@ public class CountryCodeValidator implements ConstraintValidator<CountryCodeCons
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {
         if (value != null) {
-            String upperCaseValue = value.toUpperCase();
+            final var upperCaseValue = value.toUpperCase();
             context.disableDefaultConstraintViolation();
             context
                     .buildConstraintViolationWithTemplate(String.format(VALIDATION_MESSAGE, upperCaseValue))

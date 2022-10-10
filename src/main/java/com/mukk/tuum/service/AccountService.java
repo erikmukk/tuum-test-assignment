@@ -27,19 +27,26 @@ public class AccountService {
     @Transactional
     public AccountResponse create(final CreateAccountRequest request) {
         final var account = AccountEntity.builder()
-                .customerId(request.getCustomerId())
+                .customerId(request.getCustomerId().toString())
                 .country(request.getCountry().toUpperCase())
                 .build();
 
         insertAccount(account);
 
         final var createdBalances = balanceService.createBalances(request.getCurrencies(), UUID.fromString(account.getAccountId()));
+
         account.setCountry(null);
+
         return AccountResponse.builder()
                 .accountId(UUID.fromString(account.getAccountId()))
                 .customerId(account.getCustomerId())
                 .balances(createdBalances.stream()
-                        .map(b -> new Balance(Currency.valueOf(b.getCurrency()), b.getAmount()))
+                        .map(b -> {
+                            var balance = new Balance();
+                            balance.setCurrency(Currency.valueOf(b.getCurrency()));
+                            balance.setAmount(b.getAmount());
+                            return balance;
+                        })
                         .collect(Collectors.toList()))
                 .build();
     }

@@ -19,7 +19,6 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
 import java.util.Arrays;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @ControllerAdvice
@@ -32,14 +31,17 @@ public class DefaultExceptionHandler {
         final var errorResponse = ApiErrorResponse.builder()
                 .statusCode(HttpStatus.UNPROCESSABLE_ENTITY.value())
                 .path(((ServletWebRequest) request).getRequest().getRequestURI())
+                .message(ex.getMessage())
                 .build();
         if (ex.getCause() instanceof InvalidFormatException) {
-            InvalidFormatException ifx = (InvalidFormatException) ex.getCause();
+            final var ifx = (InvalidFormatException) ex.getCause();
             if (ifx.getTargetType() != null && ifx.getTargetType().isEnum()) {
                 String message = String.format(ExceptionTexts.INVALID_ENUM_FIELD_VALUE, ifx.getPath().get(0).getFieldName());
                 String details = String.format(ExceptionTexts.INVALID_ENUM_EXPLANATION, ifx.getValue(), Arrays.toString(ifx.getTargetType().getEnumConstants()));
                 errorResponse.setMessage(message);
                 errorResponse.setDetail(details);
+            } else {
+                errorResponse.setMessage(ifx.getMessage().split("\n")[0]);
             }
         }
         return ServiceResponseUtil.nok(errorResponse, HttpStatus.UNPROCESSABLE_ENTITY);
@@ -48,7 +50,7 @@ public class DefaultExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseBody
     public ResponseEntity<ApiErrorResponse> handle(MethodArgumentNotValidException ex, WebRequest request) {
-        List<String> messages = ex.getBindingResult().getAllErrors().stream()
+        final var messages = ex.getBindingResult().getAllErrors().stream()
                 .map(e -> ((FieldError) e).getField() + " field - " + e.getDefaultMessage())
                 .collect(Collectors.toList());
         final var errorResponse = ApiErrorResponse.builder()

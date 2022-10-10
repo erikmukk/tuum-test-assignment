@@ -20,6 +20,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.stubbing.Answer;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Stream;
@@ -80,7 +81,7 @@ class TransactionServiceTest {
                 .description("DESC")
                 .direction(transactionDirection)
                 .currency(Currency.EUR)
-                .amount(10.0)
+                .amount(BigDecimal.valueOf(10.0))
                 .build();
         var balance = BalanceEntity.builder()
                 .accountId(ACCOUNT_ID.toString())
@@ -152,7 +153,7 @@ class TransactionServiceTest {
                     .description("DESC")
                     .direction(TransactionDirection.OUT)
                     .currency(Currency.EUR)
-                    .amount(10.0)
+                    .amount(BigDecimal.valueOf(10.0))
                     .build();
             final var balance = BalanceEntity.builder()
                     .accountId(ACCOUNT_ID.toString())

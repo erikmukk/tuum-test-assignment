@@ -7,10 +7,12 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import javax.validation.constraints.Min;
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.Digits;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Size;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -23,8 +25,9 @@ public class CreateTransactionRequest {
     private UUID accountId;
 
     @NotNull
-    @Min(0L)
-    private Double amount;
+    @DecimalMin(value = "0.01")
+    @Digits(integer = 9, fraction = 2)
+    private BigDecimal amount;
 
     @NotNull
     private Currency currency;

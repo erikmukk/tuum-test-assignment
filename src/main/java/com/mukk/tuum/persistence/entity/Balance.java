@@ -18,11 +18,10 @@ public class Balance {
     private Currency currency;
 
     @Setter(AccessLevel.NONE)
-    private Double amount;
+    private BigDecimal amount;
 
     public void setAmount(Double amount) {
-        BigDecimal bd = BigDecimal.valueOf(amount).setScale(2, RoundingMode.UP);
-        this.amount = bd.doubleValue();
+        this.amount = BigDecimal.valueOf(amount).setScale(2, RoundingMode.UP);
     }
 
 }

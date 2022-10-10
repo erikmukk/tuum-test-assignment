@@ -1,10 +1,8 @@
 package com.mukk.tuum.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseAction;
 import com.mukk.tuum.model.rabbit.RabbitDatabaseTable;
-import com.mukk.tuum.model.rabbit.RabbitMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,11 +32,10 @@ class RabbitSenderTest {
     }
 
     @Test
-    void sends_message() throws JsonProcessingException {
+    void sends_message() {
         when(queue.getName()).thenReturn("queue-name");
 
         rabbitSender.send(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.ACCOUNT, "{}");
-        System.out.println(objectMapper.writeValueAsString(new RabbitMessage(RabbitDatabaseAction.INSERT, RabbitDatabaseTable.ACCOUNT, "{}")));
 
         verify(rabbitTemplate).convertAndSend("queue-name", "{\"databaseAction\":\"INSERT\",\"table\":\"ACCOUNT\",\"data\":\"{}\"}");
     }
