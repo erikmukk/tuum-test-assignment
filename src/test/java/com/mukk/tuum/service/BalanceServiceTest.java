@@ -47,7 +47,7 @@ class BalanceServiceTest {
         when(balanceDao.insert(any(BalanceEntity.class))).thenAnswer((Answer<Integer>) invocation -> {
             BalanceEntity balanceEntity = invocation.getArgument(0);
             balanceEntity.setBalanceId(BALANCE_ID.toString());
-            return 1;
+            return 0;
         });
     }
 
@@ -96,7 +96,7 @@ class BalanceServiceTest {
         @Test
         void succeeds() {
             final var balanceEntity = new BalanceEntity();
-            when(balanceDao.updateByPrimaryKey(balanceEntity)).thenReturn(1);
+            when(balanceDao.updateByPrimaryKey(balanceEntity)).thenReturn(0);
 
             balanceService.updateBalance(balanceEntity);
 

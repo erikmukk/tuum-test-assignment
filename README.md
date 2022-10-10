@@ -24,6 +24,9 @@ Technologies used for testing:
 * Testcontainers 1.17.4
 * REST Assured 4.2.0
 
+Test coverage:
+![coverage](coverage.png)
+
 ### How to run the application locally?
 
 The easiest way to run this application locally for this demo, would be with Docker.

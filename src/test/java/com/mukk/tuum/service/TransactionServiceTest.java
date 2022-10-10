@@ -69,7 +69,7 @@ class TransactionServiceTest {
         when(transactionDao.insert(any(TransactionEntity.class))).thenAnswer((Answer<Integer>) invocation -> {
             TransactionEntity transactionEntity = invocation.getArgument(0);
             transactionEntity.setTransactionId(TRANSACTION_ID.toString());
-            return 1;
+            return 0;
         });
     }
 

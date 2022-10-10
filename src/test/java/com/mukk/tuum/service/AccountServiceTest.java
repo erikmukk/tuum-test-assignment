@@ -56,7 +56,7 @@ class AccountServiceTest {
         when(accountDao.insert(any(AccountEntity.class))).thenAnswer((Answer<Integer>) invocation -> {
             AccountEntity accountEntity = invocation.getArgument(0);
             accountEntity.setAccountId(ACCOUNT_ID.toString());
-            return 1;
+            return 0;
         });
     }
 
